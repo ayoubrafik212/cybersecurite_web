@@ -1,53 +1,40 @@
 <?php
-session_start();
+$base_dir = __DIR__ . "/files/";
+$forbidden_files = ['.env', '.htaccess', 'config.php']; // Liste noire
 
-// Authentifiants valides
-$valid_login = 'admin';
-$valid_password = '1234';
+if (isset($_GET['file'])) {
+    $filename = basename($_GET['file']);
 
-if (!isset($_SESSION['tries'])) {
-    $_SESSION['tries'] = 0;
-}
+    // Blocage si fichier interdit
+    if (in_array($filename, $forbidden_files)) {
+        die("⛔ Accès refusé à ce fichier.");
+    }
 
-$lockout_time = 60; // secondes
-$message = '';
+    $filepath = realpath($base_dir . $filename);
 
-// Blocage après 3 tentatives
-if (isset($_SESSION['lock_time']) && time() < $_SESSION['lock_time']) {
-    $wait = $_SESSION['lock_time'] - time();
-    $message = "🚫 Trop de tentatives. Réessaie dans $wait secondes.";
-} elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $login = $_POST['login'];
-    $password = $_POST['password'];
-
-    if ($login === $valid_login && $password === $valid_password) {
-        $message = "✅ Connexion réussie !";
-        $_SESSION['tries'] = 0;
-        unset($_SESSION['lock_time']);
-    } else {
-        $_SESSION['tries']++;
-
-        if ($_SESSION['tries'] >= 3) {
-            $_SESSION['lock_time'] = time() + $lockout_time;
-            $message = "🚫 Trop de tentatives. Bloqué pour $lockout_time secondes.";
+    // Vérifie que le fichier est bien dans le dossier autorisé
+    if ($filepath && str_starts_with($filepath, realpath($base_dir))) {
+        if (file_exists($filepath)) {
+            header("Content-Type: text/plain");
+            echo file_get_contents($filepath);
         } else {
-            $tries_left = 3 - $_SESSION['tries'];
-            $message = "❌ Identifiants incorrects. Tentatives restantes : $tries_left";
+            echo "❌ Fichier introuvable.";
         }
+    } else {
+        echo "⛔ Accès non autorisé.";
     }
 }
 ?>
 
 <!DOCTYPE html>
 <html>
-<head><meta charset="UTF-8"><title>Brute Force - Sécurisé</title></head>
+<head><meta charset="UTF-8"><title>Information Disclosure - Sécurisé</title></head>
 <body>
-    <h1>Connexion sécurisée</h1>
-    <form method="post">
-        Login : <input type="text" name="login"><br>
-        Mot de passe : <input type="password" name="password"><br>
-        <button type="submit">Se connecter</button>
+    <h1>Accès fichiers autorisés uniquement</h1>
+    <form method="get">
+        <label>Nom du fichier :</label><br>
+        <input type="text" name="file"><br><br>
+        <button type="submit">Afficher</button>
     </form>
-    <p><?= $message ?></p>
 </body>
 </html>
