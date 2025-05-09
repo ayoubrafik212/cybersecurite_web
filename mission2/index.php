@@ -11,12 +11,12 @@
             padding: 30px;
             margin: 0;
         }
-
+ 
         h1 {
             text-align: center;
             color: #333;
         }
-
+ 
         form {
             background-color: white;
             padding: 20px;
@@ -27,7 +27,7 @@
             display: flex;
             gap: 10px;
         }
-
+ 
         input[type="text"] {
             flex: 1;
             padding: 10px;
@@ -35,7 +35,7 @@
             border: 1px solid #ccc;
             border-radius: 5px;
         }
-
+ 
         button {
             padding: 10px 20px;
             background-color: #2575fc;
@@ -45,16 +45,16 @@
             font-weight: bold;
             cursor: pointer;
         }
-
+ 
         button:hover {
             background-color: #1a5edb;
         }
-
+ 
         .comment-section {
             max-width: 600px;
             margin: 30px auto;
         }
-
+ 
         .comment {
             background: white;
             border-left: 5px solid #2575fc;
@@ -63,17 +63,17 @@
             border-radius: 5px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-
+ 
         .comment .id {
             font-weight: bold;
             color: #555;
         }
-
+ 
         .comment .content {
             margin-top: 5px;
             color: #333;
         }
-
+ 
         .no-comment {
             text-align: center;
             color: #888;
@@ -82,41 +82,41 @@
 </head>
 <body>
     <h1>💬 Daily post</h1>
-
+ 
     <?php
     $env = parse_ini_file('.env');
     $conn = new mysqli($env["SERVERNAME"], $env["USERNAME"], $env["PASSWORD"]);
     ?>
-
-    <form action="/" method="post">
+ 
+    <form action="index.php" method="post">
         <input type="text" name="comment" placeholder="Ajouter un post..." required>
         <button type="submit">Ajouter</button>
     </form>
-
+ 
     <div class="comment-section">
         <?php
         $sql = "USE {$env["DATABASE"]}";
         $conn->query($sql);
-
+ 
         if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $sql = "INSERT INTO comment (content) VALUES ('{$_POST["comment"]}')";
             $conn->query($sql);
         }
-
+ 
         $sql = "SELECT * FROM comment ORDER BY id DESC"; // plus récent d'abord
         $result = $conn->query($sql);
-
+ 
         if ($result->num_rows > 0) {
             while ($row = $result->fetch_assoc()) {
                 echo "<div class='comment'>";
                 echo "<div class='id'>#{$row["id"]}</div>";
-                echo "<div class='content'>" . $row["content"] . "</div>";
+                echo "<div class='content'>" . htmlspecialchars($row["content"], ENT_QUOTES, 'UTF-8') . "</div>";
                 echo "</div>";
             }
         } else {
             echo "<p class='no-comment'>Aucun commentaire pour l'instant.</p>";
         }
-
+ 
         $conn->close();
         ?>
     </div>
