@@ -62,3 +62,4 @@ php -S localhost:8081
 
 🌍 Option classique avec Apache
 Place le contenu du projet dans le bon dossier Apache (ex : htdocs pour XAMPP).
+salut
